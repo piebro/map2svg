@@ -1,0 +1,25 @@
+version: "2"
+volumes:
+  pgdata:
+services:
+  postgres:
+    image: "openmaptiles/postgis:2.9"
+    volumes:
+    - pgdata:/var/lib/postgresql/data
+    networks:
+    - postgres_conn
+    ports:
+     - "5432:5432"
+    env_file: .env
+  import-osm:
+    image: "openmaptiles/import-osm:0.5"
+    env_file: .env
+    networks:
+    - postgres_conn
+    volumes:
+     - ./data:/import
+     - ./build:/mapping
+     - ./cache:/cache
+networks:
+  postgres_conn:
+    driver: bridge

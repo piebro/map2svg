@@ -1,0 +1,11 @@
+{
+    "name": "map2svg",
+    "version": "0.0.1",
+    "description": "open street map to svg image",
+    "author": "Piet Brömmel",
+    "dependencies": {
+        "pg": "^7.11.0",
+        "svg.js": "^2.7.1",
+        "svgdom": "0.0.20"
+    }
+}
