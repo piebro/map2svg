@@ -4,7 +4,7 @@
 
 1. start the postgres container with `docker-compose up -d postgres`
 
-2. copy you .osm.pbf file into the data folder
+2. copy you .osm.pbf file into the data folder (you can get them from <http://download.geofabrik.de/> for example)
 
 3. import the data with `docker-compose run import-osm`
 
@@ -12,7 +12,7 @@
 
 to create an svg run with the wanted table, bbox and filename
 
-`node map2svg.js config_examples/street_and_building.json > cool.svg`
+`node map2svg.js config-example.yaml > ~/Desktop/map.svg` (for the exmaple you will need the `andorra-latest.osm.pbf` from <http://download.geofabrik.de/europe/andorra.html>)
 
 ## helpful
 

@@ -1,14 +1,27 @@
-const fs = require('fs');  
-
+const fs = require('fs');
+const yaml = require('js-yaml');
 
 main();
 
 async function main(){
-  config = JSON.parse(fs.readFileSync(process.argv[2]))
+  config = yaml.safeLoad(fs.readFileSync(process.argv[2], 'utf8'))
+  
+  bbox = config.bbox;
+
+  if(bbox.xyRatio !== undefined){
+    bbox.yLength = bbox.xLength / bbox.xyRatio / config.heightMult
+  }
+
+  if(bbox.middle !== undefined && bbox.xLength !== undefined && bbox.yLength !== undefined){
+    bbox.xMin = bbox.middle[1]-bbox.xLength/2
+    bbox.yMin = bbox.middle[0]-bbox.yLength/2
+    bbox.xMax = bbox.middle[1]+bbox.xLength/2
+    bbox.yMax = bbox.middle[0]+bbox.yLength/2
+  }
+
   results = await dbRequests(config)
   createSVG(config, results)
 }
-
 
 async function dbRequests(config){
   const { _ , Client } = require('pg')
@@ -21,17 +34,13 @@ async function dbRequests(config){
   })
   client.connect()
 
-
-  bboxString = "" + config.bbox[0] + ", " + config.bbox[1] + ", " + config.bbox[2] + ", " + config.bbox[3]
-
+  bboxString = "" + config.bbox.xMin + ", " + config.bbox.yMin + ", " + config.bbox.xMax + ", " + config.bbox.yMax
 
   results = []
 
   for(request of config.requests){
     query = buildQueryString(bboxString, request)
-    //console.error(query)
     const res = await client.query(query)
-    
 
     geometry = []
     for(row of res.rows){
@@ -42,11 +51,8 @@ async function dbRequests(config){
       geometry: geometry,
       request: request
     })
-
   }
-  
   await client.end()
-
   return results
 }
 
@@ -66,8 +72,6 @@ function buildQueryString(bboxString, request){
   return queryArray.join(" ") + ";"
 }
 
-
-
 function createSVG(config, results){
   const window   = require('svgdom')
   const SVG      = require('svg.js')(window)  
@@ -78,8 +82,8 @@ function createSVG(config, results){
   const svgWidth = config.svgWidth;
   const heightMult = config.heightMult;
 
-  bboxWidth = bbox[2]-bbox[0]
-  bboxHeight = (bbox[3]-bbox[1])*heightMult
+  bboxWidth = bbox.xMax-bbox.xMin
+  bboxHeight = (bbox.yMax-bbox.yMin)*heightMult
   scaleValue = svgWidth / bboxWidth
 
   svgHeight = bboxHeight * scaleValue
@@ -92,12 +96,12 @@ function createSVG(config, results){
     for(geo of result.geometry){
       if(geo.type=="LineString"){
         line = geo.coordinates
-        newline = line.map((p)=>[(p[0]-bbox[0])*scaleValue,(-p[1]+bbox[3])*scaleValue*heightMult])
-        draw.polyline(newline).attr(result.request)
+        newline = line.map((p)=>[(p[0]-bbox.xMin)*scaleValue,(-p[1]+bbox.yMax)*scaleValue*heightMult])
+        draw.polyline(newline).attr(result.request).attr({"stroke-linecap":"round"})
       } else if(geo.type=="Polygon"){
         for(line of geo.coordinates){
-          newline = line.map((p)=>[(p[0]-bbox[0])*scaleValue,(-p[1]+bbox[3])*scaleValue*heightMult])
-          draw.polyline(newline).attr(result.request)
+          newline = line.map((p)=>[(p[0]-bbox.xMin)*scaleValue,(-p[1]+bbox.yMax)*scaleValue*heightMult])
+          draw.polyline(newline).attr(result.request).attr({"stroke-linecap":"round"})
         }
       }
     }

@@ -1,0 +1,35 @@
+# There are two ways to define the bbox. You can define xMin, yMin, xMax and yMax or you can define middle, xLength and yLength. Instead of yLength you can also define xyRatio.
+bbox:
+  #xMin: 6.8071
+  #yMin: 51.7427
+  #xMax: 6.8766
+  #yMax: 51.7919
+  # With middle, xLength and yLength set xMin, yMin, xMax and yMax will be calcuated
+  # lat/lon
+  middle: [42.5133,1.5347]
+  xLength: 0.04
+  #yLength: 0.01
+  # With xyRatio set: yLength = xLength / xyRatio
+  xyRatio: 1
+
+# the heightMult value scales the image at the y-axis. This has to be done to so the conversion from latitude and longitude to x and y works. There should be a way that this works better
+heightMult: 1.61
+
+svgWidth: 1000
+background-color: "#ffffff"
+
+
+requests:
+  - table: "osm_highway_linestring"
+    restrictions: ""
+    stroke-width: 1
+    stroke: "#000000"
+    fill: "none"
+
+  - table: "osm_building_polygon"
+    restrictions: ""
+    stroke-width: 1
+    stroke: "#303030"
+    fill: "none"
+
+    
