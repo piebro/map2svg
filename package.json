@@ -4,6 +4,7 @@
     "description": "open street map to svg image",
     "author": "Piet Brömmel",
     "dependencies": {
+        "argparse": "^1.0.10",
         "js-yaml": "^3.13.1",
         "pg": "^7.11.0",
         "svg.js": "^2.7.1",

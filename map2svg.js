@@ -1,10 +1,53 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
+var ArgumentParser = require('argparse').ArgumentParser;
 
 main();
 
+function getArgs(){
+  var parser = new ArgumentParser({
+    version: '0.0.1',
+    addHelp:true,
+    description: 'Argparse example'
+  });
+  parser.addArgument(
+    [ 'config_path' ],
+    {
+      help: 'path to a config file'
+    }
+  );
+  parser.addArgument(
+    [ '-c', '--config' ],
+    {
+      help: 'to change configs in json dynamically'
+    }
+  );
+
+  parser.addArgument(
+    [ '-o', '--output' ],
+    {
+      help: 'path for the output file. Otherwise it will print the svg to the cmd line'
+    }
+  );
+
+  return parser.parseArgs();
+}
+
+function getConfigs(args){
+  config = yaml.safeLoad(fs.readFileSync(args.config_path, 'utf8'))
+
+  if(args.config != null){
+    cmdLineConfig = JSON.parse(args.config)
+    config = Object.assign(config, cmdLineConfig);
+  }
+  
+  return config;
+}
+
 async function main(){
-  config = yaml.safeLoad(fs.readFileSync(process.argv[2], 'utf8'))
+
+  args = getArgs()
+  config = getConfigs(args)
   
   bbox = config.bbox;
 
@@ -18,9 +61,17 @@ async function main(){
     bbox.xMax = bbox.middle[1]+bbox.xLength/2
     bbox.yMax = bbox.middle[0]+bbox.yLength/2
   }
-
   results = await dbRequests(config)
-  createSVG(config, results)
+  svgStr = createSVG(config, results)
+
+  if(args.output == null){
+    console.log(svgStr)
+  } else {
+    fs.writeFile(args.output, svgStr, (err) => {
+      // throws an error, you could also catch it here
+      if (err) throw err;
+    }); 
+  }
 }
 
 async function dbRequests(config){
@@ -107,5 +158,5 @@ function createSVG(config, results){
     }
   }
 
-  console.log(draw.svg())
+  return draw.svg();
 }
